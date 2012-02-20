@@ -1,0 +1,49 @@
+\documentclass{seminar}
+
+\usepackage{amsfonts}
+\usepackage[dvips]{pstricks}
+\usepackage{semcolor,slidesec}
+\input{seminar.bug}
+\input{seminar.bg2}
+
+\definecolor{fillcolor}{rgb}{0.9,0.95,1.0}
+\definecolor{linecolor}{rgb}{0.8,0.85,0.9}
+\slideframe[\psset{fillcolor=fillcolor,linecolor=linecolor}]{scshadow}
+
+\title{\psshadowbox{$\lambda$ Lounge: Evolutionary Algorithms}}
+\author{Christopher Mark Gore\\
+  \texttt{http://www.cgore.com}\\
+  \texttt{cgore@cgore.com}}
+\date{Thursday, March 1, 2012}
+
+\begin{document}
+
+\raggedslides[0mm]
+
+\begin{slide}
+\maketitle
+\end{slide}
+
+\begin{slide}
+\slideheading{Evolutionary Algorithms}
+\begin{enumerate}
+\item Initialization: generate a random population.
+\item Evaluation: rate each member of the population.
+\item Repeatedly:
+	\begin{enumerate}
+	\item Parent selection: choose who to breed.
+	\item Recombination: cross the parents.
+	\item Mutation: applied to the offspring.
+	\item Evaluation: usually just the new offspring.
+	\item Selection: kill off the weak.
+	\end{enumerate}
+\end{enumerate}
+\end{slide}
+
+\begin{slide}
+\begin{center}
+\textbf{\emph{\Huge{Questions?}}}
+\end{center}
+\end{slide}
+
+\end{document}
