@@ -1,5 +1,6 @@
 \documentclass{seminar}
 
+\usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{bookman}
 \usepackage{amsfonts}
 \usepackage[dvips]{pstricks}
@@ -11,13 +12,14 @@
 \definecolor{linecolor}{rgb}{0.8,0.85,0.9}
 \slideframe[\psset{fillcolor=fillcolor,linecolor=linecolor}]{scshadow}
 
+\newcommand{\hc}{Blue}
+\newcommand{\h}[1]{\slideheading{\textcolor{\hc}{#1}}}
+\newcommand{\tq}[1]{\textcolor{BrickRed}{\textit{#1}}}
+
 \title{\psshadowbox{Evolutionary Algorithms}}
 \author{Christopher Mark Gore\\
   \texttt{http://www.cgore.com}\\
-  \texttt{cgore@cgore.com}\\
-  %\texttt{http://www.cgore.com/2012-03-01-lambda-lounge-ea-talk}\\
-  %\texttt{https://github.com/cgore/2012-03-01-lambda-lounge-ea-talk}}
-}
+  \texttt{cgore@cgore.com}}
 \date{Thursday, March 1, 2012}
 
 \begin{document}
@@ -25,61 +27,115 @@
 \raggedslides[0mm]
 
 \begin{slide}
+\color{\hc}
 
 \begin{center}
 \textbf{\emph{\Huge{$\lambda$ Lounge}}}
 \end{center}
 
 \maketitle
+
+\color{Black}
 \end{slide}
 
 \begin{slide}
-\slideheading{Why Use and Evolutionary Algorithm?}
+\h{Why Use and Evolutionary Algorithm?}
 \end{slide}
 
 \begin{slide}
-\slideheading{The Evolutionary Algorithm}
+\h{The Evolutionary Algorithm}
 \begin{enumerate}
-\item Population Initialization: generate a new population.
-\item Fitness Evaluation: rate each member of the population.
-\item Repeatedly:
-	\begin{enumerate}
-	\item Parent Selection: choose who to breed.
-	\item Recombination: cross the parents.
-	\item Mutation: applied to the offspring.
-	\item Fitness Evaluation: usually just the new offspring.
-	\item Survivor Selection: kill off the weak.
-	\end{enumerate}
+  \item Population Initialization: generate a new population.
+  \item Fitness Evaluation: rate each member of the population.
+  \item Repeatedly:
+    \begin{enumerate}
+      \item Parent Selection: choose who to breed.
+      \item Recombination: cross the parents.
+      \item Mutation: applied to the offspring.
+      \item Fitness Evaluation: usually just the new offspring.
+      \item Survivor Selection: kill off the weak.
+    \end{enumerate}
 \end{enumerate}
 \end{slide}
 
 \begin{slide}
-\slideheading{Population Initialization}
+\h{Population Initialization}
+
+\begin{center}
+  \tq{``It's turtles all the way down ... until it's not.''}
+\end{center}
+
+\begin{itemize}
+  \item Intelligently seed the population: think Adam and Eve.
+    This is common if you are fine-tuning a solution you already have, either
+    generated from your EA in a previous run, or from some different system.\\
+    \textbf{Pro:} you can start off the population somewhere useful.\\
+    \textbf{Con:} you have to know where \textit{``somewhere useful''} is.
+  \item Randomly generate the population.\\
+    This is usually easy and usually doesn't cost too many generations.
+  \item Doing both at the same time isn't uncommon.
+\end{itemize}
+
 \end{slide}
 
 \begin{slide}
-\slideheading{Fitness Evaluation}
+\h{Fitness Evaluation}
+
+\begin{center}
+  \tq{``I'm so much more beautiful/intelligent/strong/fast/rich than you could ever hope to be.''}
+\end{center}
+
+We need to determine the fitness of our solutions.
+
+\begin{itemize}
+  \item Minimum or maximum direct value.
+  \item Simulation of an environment.
+  \item Some fitness heuristic.
+  \item Head-to-head competition.
+\end{itemize}
+
 \end{slide}
 
 \begin{slide}
-\slideheading{Parent Selection}
+\h{Parent Selection}
+
+\begin{center}
+  \tq{``Who's your Daddy?''}
+\end{center}
+
 \end{slide}
 
 \begin{slide}
-\slideheading{Recombination}
+\h{Recombination}
+
+\begin{center}
+  \tq{(Pretend that 1970's porn music is playing.)}
+\end{center}
+
 \end{slide}
 
 \begin{slide}
-\slideheading{Mutation}
+\h{Mutation}
 \end{slide}
 
 \begin{slide}
-\slideheading{Survivor Selection}
+\h{Survivor Selection}
+
+\begin{center}
+  \tq{``I brought you into this world, and I can take you out of it.''}
+\end{center}
+
 \end{slide}
 
 \begin{slide}
 \begin{center}
-\textbf{\emph{\Huge{Questions?}}}
+  \textcolor{\hc}{\textbf{\emph{\Huge{Let's look at code!}}}}
+\end{center}
+\end{slide}
+
+\begin{slide}
+\begin{center}
+  \textcolor{\hc}{\textbf{\emph{\Huge{Questions?}}}}
 \end{center}
 \end{slide}
 
