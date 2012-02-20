@@ -1,5 +1,6 @@
 \documentclass{seminar}
 
+\usepackage{bookman}
 \usepackage{amsfonts}
 \usepackage[dvips]{pstricks}
 \usepackage{semcolor,slidesec}
@@ -10,10 +11,13 @@
 \definecolor{linecolor}{rgb}{0.8,0.85,0.9}
 \slideframe[\psset{fillcolor=fillcolor,linecolor=linecolor}]{scshadow}
 
-\title{\psshadowbox{$\lambda$ Lounge: Evolutionary Algorithms}}
+\title{\psshadowbox{Evolutionary Algorithms}}
 \author{Christopher Mark Gore\\
   \texttt{http://www.cgore.com}\\
-  \texttt{cgore@cgore.com}}
+  \texttt{cgore@cgore.com}\\
+  %\texttt{http://www.cgore.com/2012-03-01-lambda-lounge-ea-talk}\\
+  %\texttt{https://github.com/cgore/2012-03-01-lambda-lounge-ea-talk}}
+}
 \date{Thursday, March 1, 2012}
 
 \begin{document}
@@ -21,23 +25,56 @@
 \raggedslides[0mm]
 
 \begin{slide}
+
+\begin{center}
+\textbf{\emph{\Huge{$\lambda$ Lounge}}}
+\end{center}
+
 \maketitle
 \end{slide}
 
 \begin{slide}
-\slideheading{Evolutionary Algorithms}
+\slideheading{Why Use and Evolutionary Algorithm?}
+\end{slide}
+
+\begin{slide}
+\slideheading{The Evolutionary Algorithm}
 \begin{enumerate}
-\item Initialization: generate a random population.
-\item Evaluation: rate each member of the population.
+\item Population Initialization: generate a new population.
+\item Fitness Evaluation: rate each member of the population.
 \item Repeatedly:
 	\begin{enumerate}
-	\item Parent selection: choose who to breed.
+	\item Parent Selection: choose who to breed.
 	\item Recombination: cross the parents.
 	\item Mutation: applied to the offspring.
-	\item Evaluation: usually just the new offspring.
-	\item Selection: kill off the weak.
+	\item Fitness Evaluation: usually just the new offspring.
+	\item Survivor Selection: kill off the weak.
 	\end{enumerate}
 \end{enumerate}
+\end{slide}
+
+\begin{slide}
+\slideheading{Population Initialization}
+\end{slide}
+
+\begin{slide}
+\slideheading{Fitness Evaluation}
+\end{slide}
+
+\begin{slide}
+\slideheading{Parent Selection}
+\end{slide}
+
+\begin{slide}
+\slideheading{Recombination}
+\end{slide}
+
+\begin{slide}
+\slideheading{Mutation}
+\end{slide}
+
+\begin{slide}
+\slideheading{Survivor Selection}
 \end{slide}
 
 \begin{slide}
