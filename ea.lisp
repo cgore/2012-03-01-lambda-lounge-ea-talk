@@ -31,6 +31,22 @@
 ;;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;;; POSSIBILITY OF SUCH DAMAGE.
 
+;;; Cf. http://www.necessaryandsufficient.net/2010/12/classical-test-functions-for-genetic-algorithms/ 
+(defvar *rastrigin-lower* -5.12)
+(defvar *rastrigin-upper* 5.12)
+(defun rastrigin (a x)
+  (assert (floatp a))
+  (assert (listp x))
+  (mapcar (lambda (xi)
+	    (assert (floatp xi))
+	    (assert (< *rastrigin-lower* xi *rastrigin-upper*))))
+  (let ((n (length x)))
+    (+ (* a n)
+       (reduce #'+ (mapcar (lambda (xi)
+			     (- (expt xi 2.0)
+				(* a (cos (* 2 pi xi)))))
+			   x)))))
+
 (defun bounded (min value max)
   (let ((a (min min max))
 	(z (max min max)))
