@@ -32,6 +32,8 @@
 ;;;; POSSIBILITY OF SUCH DAMAGE.
 
 ;;; Cf. http://www.necessaryandsufficient.net/2010/12/classical-test-functions-for-genetic-algorithms/ 
+;;;
+;;; Cf. http://en.wikipedia.org/wiki/Rastrigin_function
 (defvar *rastrigin-lower* -5.12)
 (defvar *rastrigin-upper* 5.12)
 (defun rastrigin (a x)
@@ -115,7 +117,8 @@
 (defmethod duplicate ((gene gene))
   (with-slots (value lower-bound upper-bound individual) gene
     (make-instance 'gene
-		   :value value :lower-bound lower-bound :upper-bound upper-bound
+		   :value value
+                   :lower-bound lower-bound :upper-bound upper-bound
 		   :individual individual)))
 
 (defmethod duplicate ((individual individual))
@@ -167,7 +170,8 @@
 (defmethod make-random-individual ((ea ea))
   (make-instance 'individual
 		 :genotype
-		 (coerce (loop for i from 0 to (length (environ-lower ea)) collect
+		 (coerce (loop for i from 0 to (length (environ-lower ea))
+                               collect
 			      (let* ((l (aref (environ-lower ea) i))
 				     (u (aref (environ-upper ea) i))
 				     (a (min l u))
