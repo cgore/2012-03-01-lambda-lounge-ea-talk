@@ -42,6 +42,12 @@
 
 \begin{slide}
   \h{Why Use and Evolutionary Algorithm?}
+  \begin{itemize}
+    \item The evaluation is very time-consuming.
+    \item The problem is computationally difficult, NP-Hard or similar.
+    \item You don't understand the problem, and it is a real-world system.
+    \item You just want to study evolutionary processes themselves.
+  \end{itemize}
 \end{slide}
 
 \begin{slide}
@@ -151,6 +157,14 @@
   \end{itemize}
 
   So in short, no, this isn't the best way to do things in the real world.
+\end{slide}
+
+\begin{slide}
+  \h{How Good of Performance?}
+  
+  \begin{center}
+    \includegraphics[width=4in]{investment-performance.eps}
+  \end{center}
 \end{slide}
 
 \begin{slide}
