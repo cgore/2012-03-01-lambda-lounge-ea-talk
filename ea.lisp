@@ -31,7 +31,17 @@
 ;;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;;; POSSIBILITY OF SUCH DAMAGE.
 
-;;; Cf. http://www.necessaryandsufficient.net/2010/12/classical-test-functions-for-genetic-algorithms/ 
+(defun random-in-range (lower upper)
+  "(random-in-range lower upper) --> result.
+  Produces a random number between the lower and upper bounds specified."
+  (assert (numberp lower))
+  (assert (numberp upper))
+  (let ((a (min lower upper))
+        (z (max lower upper)))
+    (+ a (random (- z a)))))
+
+;;; Cf. http://www.necessaryandsufficient.net/2010/12/
+;;;     classical-test-functions-for-genetic-algorithms/
 ;;;
 ;;; Cf. http://en.wikipedia.org/wiki/Rastrigin_function
 (defvar *rastrigin-lower* -5.12)
@@ -57,8 +67,11 @@
 (assert (= 0.0 (rastrigin 10.0 #(0.0 0.0)))) ; This is the global minimum.
 (assert (= 0.0 (rastrigin 10 #(0 0 0 0 0 0)))) ; This is the global minimum.
 (loop for i from 1 to 1000 do ; The Rastrigin function is always non-negative.
-      (assert (<= 0.0 (rastrigin 10 #((random *rastrigin-upper*)
-                                      (random *rastrigin-upper*))))))
+      (assert (<= 0.0
+                  (rastrigin 10 #((random-in-range
+                                    *rastrigin-lower* *rastrigin-upper*)
+                                  (random-in-range
+                                    *rastrigin-lower* *rastrigin-upper*))))))
 
 (defun bounded (min value max)
   "(bounded min value max) --> result.
@@ -183,12 +196,9 @@
   (make-instance 'individual
 		 :genotype
 		 (coerce (loop for i from 0 to (length (environ-lower ea))
-                               collect
-			      (let* ((l (aref (environ-lower ea) i))
-				     (u (aref (environ-upper ea) i))
-				     (a (min l u))
-				     (z (max l u)))
-				(+ a (random (- z a)))))
+                               collect (random-in-range
+                                         (aref (environ-lower ea) i)
+                                         (aref (environ-upper ea) i)))
 			 'vector)
 		 :ea ea))
 
@@ -220,7 +230,7 @@
     (evaluate-fitness ea)
     (select-survivors ea)))
 
-(defclass rastrigin2d-ea (ea)
+(defclass rastrigin2d-ea (ea) ; An EA for the 2D Rastrigin function.
   ((environ-lower :initform #(*rastrigin-lower* *rastrigin-lower*))
    (environ-upper :initform #(*rastrigin-upper* *rastrigin-upper*))
    (coefficient-a :accessor coefficient-a :initarg :coefficient-a
