@@ -69,10 +69,6 @@
 \begin{slide}
   \h{Population Initialization}
 
-  \begin{center}
-    \tq{``It's turtles all the way down ... until it's not.''}
-  \end{center}
-
   \begin{itemize}
     \item Intelligently seed the population: think Adam and Eve.
       This is common if you are fine-tuning a solution you already have, either
@@ -88,10 +84,6 @@
 \begin{slide}
   \h{Fitness Evaluation}
 
-  \begin{center}
-    \tq{``I'm so much more beautiful/intelligent/strong/fast/rich than you could ever hope to be.''}
-  \end{center}
-
   We need to determine the fitness of our solutions.
 
   \begin{itemize}
@@ -105,17 +97,11 @@
 \begin{slide}
   \h{Parent Selection}
 
-  \begin{center}
-    \tq{``Who's your Daddy?''}
-  \end{center}
 \end{slide}
 
 \begin{slide}
   \h{Recombination}
   
-  \begin{center}
-    \tq{(Pretend that 1970's porn music is playing.)}
-  \end{center}
 \end{slide}
 
 \begin{slide}
@@ -125,9 +111,6 @@
 \begin{slide}
   \h{Survivor Selection}
 
-  \begin{center}
-    \tq{``I brought you into this world, and I can take you out of it.''}
-  \end{center}
 \end{slide}
 
 \begin{slide}
