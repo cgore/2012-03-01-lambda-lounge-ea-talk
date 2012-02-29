@@ -37,9 +37,11 @@
 (defvar *rastrigin-lower* -5.12)
 (defvar *rastrigin-upper* 5.12)
 (defun rastrigin (a x)
-  (assert (floatp a))
-  (assert (listp x))
-  (mapcar (lambda (xi)
+  (when (vectorp x) ; We compute on a list here, not a vector.
+    (setf x (coerce x 'list)))
+  (assert (floatp a)) ; The coefficient A should be a float.
+  (assert (listp x)) ; The argument x should be a list.
+  (mapcar (lambda (xi) ; Every x_i should be a float, correctly bounded.
 	    (assert (floatp xi))
 	    (assert (<= *rastrigin-lower* xi *rastrigin-upper*))))
   (let ((n (length x)))
@@ -59,51 +61,37 @@
 	  :type float
 	  :initform nil)
    (lower-bound :accessor lower-bound :initarg :lower-bound
-		:type float
-		:initform nil)
+		:type float :initform nil)
    (upper-bound :accessor upper-bound :initarg :upper-bound
-		:type float
-		:initform nil)
+		:type float :initform nil)
    (individual :accessor individual :initarg :individual
-	       :type individual
-	       :initform nil)))
+	       :type individual :initform nil)))
 
 (defclass individual ()
   ((genotype :accessor genotype :initarg :genotype
-	     :type (vector gene)
-	     :initform nil)
+	     :type (vector gene) :initform nil)
    (fitness :accessor fitness :initarg :fitness
-	    :type float
-	    :initform nil)
+	    :type float :initform nil)
    (ea :accessor ea :initarg :ea
-       :type ea
-       :initform nil)))
+       :type ea :initform nil)))
 
 (defclass ea ()
   ((population :accessor population :initarg :population
-	       :type list
-	       :initform nil)
+	       :type list :initform nil)
    (environ-lower :accessor environ-lower :initarg :environ-lower
-		  :type (vector float)
-		  :initform nil)
+		  :type (vector float) :initform nil)
    (environ-upper :accessor environ-upper :initarg :environ-upper
-		  :type (vector float)
-		  :initform nil)
+		  :type (vector float) :initform nil)
    (min-pop-size :accessor min-pop-size :initarg :min-pop-size
-		 :type (integer 1 *)
-		 :initform 1000)
+		 :type (integer 1 *) :initform 1000)
    (max-pop-size :accessor max-pop-size :initarg :max-pop-size
-		 :type (integer 1 *)
-		 :initform 2000)
+		 :type (integer 1 *) :initform 2000)
    (mutation-prob :accessor mutation-prob :initarg :mutation-prob
-		  :type (float 0.0 1.0)
-		  :initform 0.1)
+		  :type (float 0.0 1.0) :initform 0.1)
    (mutation-factor :accessor mutation-factor :initarg :mutation-factor
-		    :type (float 0.0 1.0)
-		    :initform 0.05)
+		    :type (float 0.0 1.0) :initform 0.05)
    (crossover-prob :accessor crossover-prob :initarg :crossover-prob
-		   :type (float 0.0 1.0)
-		   :initform 0.1)))
+		   :type (float 0.0 1.0) :initform 0.1)))
 
 (defgeneric duplicate (thing))
 (defgeneric mutate? (individual))
@@ -215,8 +203,7 @@
   ((environ-lower :initform #(*rastrigin-lower* *rastrigin-lower*))
    (environ-upper :initform #(*rastrigin-upper* *rastrigin-upper*))
    (coefficient-a :accessor coefficient-a :initarg :coefficient-a
-                  :type float
-                  :initform 1.0)))
+                  :type float :initform 1.0)))
 
 (defmethod fitness-function (individual ((rastrigin2d-ea rastrigin2d-ea)))
   (rastrigin ))
