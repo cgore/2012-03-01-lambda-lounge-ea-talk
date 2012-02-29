@@ -41,7 +41,7 @@
   (assert (listp x))
   (mapcar (lambda (xi)
 	    (assert (floatp xi))
-	    (assert (< *rastrigin-lower* xi *rastrigin-upper*))))
+	    (assert (<= *rastrigin-lower* xi *rastrigin-upper*))))
   (let ((n (length x)))
     (+ (* a n)
        (reduce #'+ (mapcar (lambda (xi)
@@ -113,6 +113,9 @@
 (defgeneric crossover (father mother))
 (defgeneric make-random-individual (ea))
 (defgeneric add-random-individual (ea))
+(defgeneric fitness-function (individual ea))
+(defgeneric evaluate-fitness (thing))
+(defgeneric evolve (ea))
 
 (defmethod duplicate ((gene gene))
   (with-slots (value lower-bound upper-bound individual) gene
@@ -188,3 +191,32 @@
   (setf (population ea) nil)
   (while (< (length (population ea)) (min-pop-size ea))
     (add-random-individual ea)))
+
+(defmethod evaluate-fitness ((individual individual))
+  (when (null (fitness individual))
+    (setf (fitness individual)
+          (funcall (fitness-function (ea individual))
+
+(defmethod evaluate-fitness ((ea ea))
+  (setf (population ea)
+        (mapcar #'evaluate-fitness (population ea))))
+
+(defmethod evolve ((ea ea))
+  (initialize-random-population ea)
+  (evaluate-fitness ea)
+  (loop while (not (terminate-evolution? ea)) do
+    (select-parents ea)
+    (recombine-parents ea)
+    (mutate-children ea)
+    (evaluate-fitness ea)
+    (select-survivors ea)))
+
+(defclass rastrigin2d-ea (ea)
+  ((environ-lower :initform #(*rastrigin-lower* *rastrigin-lower*))
+   (environ-upper :initform #(*rastrigin-upper* *rastrigin-upper*))
+   (coefficient-a :accessor coefficient-a :initarg :coefficient-a
+                  :type float
+                  :initform 1.0)))
+
+(defmethod fitness-function (individual ((rastrigin2d-ea rastrigin2d-ea)))
+  (rastrigin ))
