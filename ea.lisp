@@ -90,10 +90,9 @@
 (assert (= 10 (bounded 100 5 10))) ; Below the minimum, min/max swapped.
 (assert (= 100 (bounded 100 500 10))) ; Above the maximum, min/max swapped.
 
-(defclass gene ()
+(defclass gene () ; A single floating-point gene.
   ((value :accessor value :initarg :value
-	  :type float
-	  :initform nil)
+	  :type float :initform nil)
    (lower-bound :accessor lower-bound :initarg :lower-bound
 		:type float :initform nil)
    (upper-bound :accessor upper-bound :initarg :upper-bound
@@ -101,7 +100,7 @@
    (individual :accessor individual :initarg :individual
 	       :type individual :initform nil)))
 
-(defclass individual ()
+(defclass individual () ; A simple evolvable individual.
   ((genotype :accessor genotype :initarg :genotype
 	     :type (vector gene) :initform nil)
    (fitness :accessor fitness :initarg :fitness
@@ -109,11 +108,11 @@
    (ea :accessor ea :initarg :ea
        :type ea :initform nil)))
 
-(defclass ea ()
+(defclass ea () ; The base class for all of our EAs.
   ((population :accessor population :initarg :population
-	       :type list :initform nil)
+               :type list :initform nil)
    (environ-lower :accessor environ-lower :initarg :environ-lower
-		  :type (vector float) :initform nil)
+                  :type (vector float) :initform nil)
    (environ-upper :accessor environ-upper :initarg :environ-upper
 		  :type (vector float) :initform nil)
    (min-pop-size :accessor min-pop-size :initarg :min-pop-size
@@ -126,6 +125,12 @@
 		    :type (float 0.0 1.0) :initform 0.05)
    (crossover-prob :accessor crossover-prob :initarg :crossover-prob
 		   :type (float 0.0 1.0) :initform 0.1)))
+
+(defclass rastrigin2d-ea (ea) ; An EA for the 2D Rastrigin function.
+  ((environ-lower :initform #(*rastrigin-lower* *rastrigin-lower*))
+   (environ-upper :initform #(*rastrigin-upper* *rastrigin-upper*))
+   (coefficient-a :accessor coefficient-a :initarg :coefficient-a
+                  :type float :initform 10.0)))
 
 (defgeneric duplicate (thing))
 (defgeneric mutate? (individual))
@@ -208,33 +213,26 @@
 
 (defmethod initialize-random-population ((ea ea))
   (setf (population ea) nil)
-  (while (< (length (population ea)) (min-pop-size ea))
-    (add-random-individual ea)))
+  (loop while (< (length (population ea)) (min-pop-size ea)) do
+        (add-random-individual ea)))
 
 (defmethod evaluate-fitness ((individual individual))
   (when (null (fitness individual))
     (setf (fitness individual)
-          (funcall (fitness-function (ea individual))
+          (fitness-function individual (ea individual)))))
 
 (defmethod evaluate-fitness ((ea ea))
-  (setf (population ea)
-        (mapcar #'evaluate-fitness (population ea))))
+  (mapcar #'evaluate-fitness (population ea)))
 
 (defmethod evolve ((ea ea))
   (initialize-random-population ea)
   (evaluate-fitness ea)
-  (loop while (not (terminate-evolution? ea)) do
-    (select-parents ea)
-    (recombine-parents ea)
-    (mutate-children ea)
-    (evaluate-fitness ea)
-    (select-survivors ea)))
-
-(defclass rastrigin2d-ea (ea) ; An EA for the 2D Rastrigin function.
-  ((environ-lower :initform #(*rastrigin-lower* *rastrigin-lower*))
-   (environ-upper :initform #(*rastrigin-upper* *rastrigin-upper*))
-   (coefficient-a :accessor coefficient-a :initarg :coefficient-a
-                  :type float :initform 10.0)))
+  (loop until (terminate-evolution? ea) do
+        (select-parents ea)
+        (recombine-parents ea)
+        (mutate-children ea)
+        (evaluate-fitness ea)
+        (select-survivors ea)))
 
 (defmethod fitness-function (individual ((rastrigin2d-ea rastrigin2d-ea)))
   ;; The Rastrigin function is optimal at 0, minimizing.  We code the rest of
