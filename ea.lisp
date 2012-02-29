@@ -51,10 +51,30 @@
 				(* a (cos (* 2 pi xi)))))
 			   x)))))
 
+;; Some simple examples/unit tests of the Rastrigin function.
+(assert (= 0.0 (rastrigin 10 #(0 0)))) ; This is the global minimum.
+(assert (= 0.0 (rastrigin 10 #(0.0 0.0)))) ; This is the global minimum.
+(assert (= 0.0 (rastrigin 10.0 #(0.0 0.0)))) ; This is the global minimum.
+(assert (= 0.0 (rastrigin 10 #(0 0 0 0 0 0)))) ; This is the global minimum.
+(loop for i from 1 to 1000 do ; The Rastrigin function is always non-negative.
+      (assert (<= 0.0 (rastrigin 10 #((random 10.0) (random 10.0))))))
+
 (defun bounded (min value max)
+  "(bounded min value max) --> result.
+  This is a simple function to bound a value between a minumum value and a
+  maximum value.  If the value is within the bounds, then you get it back.
+  If it is above the maximum, then you get the maximum instead.
+  If it is below the minimum, then you get the minimum instead."
   (let ((a (min min max))
 	(z (max min max)))
     (min (max a value) z)))
+
+;; Some simple examples/unit tests of the bounded function.
+(assert (= 55 (bounded 10 55 100))) ; Within the bounds.
+(assert (= 10 (bounded 10 5 100))) ; Below the minimum.
+(assert (= 100 (bounded 10 500 100))) ; Above the maximum.
+(assert (= 10 (bounded 100 5 10))) ; Below the minimum, min/max swapped.
+(assert (= 100 (bounded 100 500 10))) ; Above the maximum, min/max swapped.
 
 (defclass gene ()
   ((value :accessor value :initarg :value
@@ -203,7 +223,11 @@
   ((environ-lower :initform #(*rastrigin-lower* *rastrigin-lower*))
    (environ-upper :initform #(*rastrigin-upper* *rastrigin-upper*))
    (coefficient-a :accessor coefficient-a :initarg :coefficient-a
-                  :type float :initform 1.0)))
+                  :type float :initform 10.0)))
 
 (defmethod fitness-function (individual ((rastrigin2d-ea rastrigin2d-ea)))
-  (rastrigin ))
+  ;; The Rastrigin function is optimal at 0, minimizing.  We code the rest of
+  ;; the EA to assume that a larger fitness value implies a more fit individual,
+  ;; so we just invert the sign of the final result of the Rastrigin function to
+  ;; produce the fitness.
+  (- (rastrigin (genotype individual))))
