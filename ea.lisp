@@ -57,7 +57,8 @@
 (assert (= 0.0 (rastrigin 10.0 #(0.0 0.0)))) ; This is the global minimum.
 (assert (= 0.0 (rastrigin 10 #(0 0 0 0 0 0)))) ; This is the global minimum.
 (loop for i from 1 to 1000 do ; The Rastrigin function is always non-negative.
-      (assert (<= 0.0 (rastrigin 10 #((random 10.0) (random 10.0))))))
+      (assert (<= 0.0 (rastrigin 10 #((random *rastrigin-upper*)
+                                      (random *rastrigin-upper*))))))
 
 (defun bounded (min value max)
   "(bounded min value max) --> result.
