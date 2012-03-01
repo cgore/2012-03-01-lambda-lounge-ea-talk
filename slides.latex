@@ -125,37 +125,45 @@
 
 \begin{slide}
   \h{Recombination}
-  \[
-    \left(\begin{array}{c}
-      \rca a \\ \rca b \\ \rca c \\ \rca d \\ \rca e
-    \end{array}\right)
-    \oplus
-    \left(\begin{array}{c}
-      \rcb \alpha \\ \rcb \beta \\ \rcb \gamma \\ \rcb \delta \\ \rcb \epsilon
-    \end{array}\right)
-    \rightarrow
-    \left(\begin{array}{c}
-       \rca a \\ \rca b \\ \rca c \\ \rcb \delta \\ \rcb \epsilon
-    \end{array}\right)
-  \]
-%
-%    \left(
-%      \begin{array}{c}
-%      \end{array}
-%    \right)
+  \begin{center}
+    \begin{tabular}{lr}
+      \includegraphics[height=2in]{tiger-bunny.eps}
+      &
+      $
+        \left(\begin{array}{c}
+          \rca a \\ \rca b \\ \rca c \\ \rca d \\ \rca e
+        \end{array}\right)
+        \oplus
+        \left(\begin{array}{c}
+          \rcb \alpha \\ \rcb \beta \\ \rcb \gamma \\ \rcb \delta \\ \rcb \epsilon
+        \end{array}\right)
+        \rightarrow
+        \left(\begin{array}{c}
+           \rca a \\ \rca b \\ \rca c \\ \rcb \delta \\ \rcb \epsilon
+        \end{array}\right)
+      $
+    \end{tabular}
+  \end{center}
 \end{slide}
 
 \begin{slide}
   \h{Mutation}
-  \[
-    \left(\begin{array}{c}
-      a \\ b \\ c \\ d \\ e
-    \end{array}\right)
-    \rightarrow
-    \left(\begin{array}{c}
-      \rca{a\cdot1.02} \\ b \\ \rca{c\cdot0.975} \\ d \\ e
-    \end{array}\right)
-  \]
+  
+  \begin{center}
+    \begin{tabular}{lr}
+      \includegraphics[width=2in]{mutant-piglet.eps}
+      &
+      $
+       \left(\begin{array}{c}
+          a \\ b \\ c \\ d \\ e
+       \end{array}\right)
+        \rightarrow
+       \left(\begin{array}{c}
+          \rca{a\cdot1.02} \\ b \\ \rca{c\cdot0.975} \\ d \\ e
+        \end{array}\right)
+      $
+    \end{tabular}
+  \end{center}
 \end{slide}
 
 \begin{slide}
