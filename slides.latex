@@ -129,7 +129,7 @@
 \begin{slide}
   \h{Let's Look at Some Code!}
 
-  This is intentionally simple code
+  This is intentionally simple code.
 
   \begin{itemize}
     \item I want you to learn about evolutionary algorithms in this talk,
@@ -140,14 +140,6 @@
   \end{itemize}
 
   So in short, no, this isn't the best way to do things in the real world.
-\end{slide}
-
-\begin{slide}
-  \h{How Good of Performance?}
-  
-  \begin{center}
-    \includegraphics[width=4in]{investment-performance.eps}
-  \end{center}
 \end{slide}
 
 \begin{slide}
