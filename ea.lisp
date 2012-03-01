@@ -31,6 +31,14 @@
 ;;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;;; POSSIBILITY OF SUCH DAMAGE.
 
+(defvar *noisy* t)
+(defun noisy (&rest rest)
+  (if *noisy* (apply #'format t rest)))
+
+(defun the-last (list)
+  (assert (listp list))
+  (car (last list)))
+
 (defun random-in-range (lower upper)
   "(random-in-range lower upper) --> result.
   Produces a random number between the lower and upper bounds specified."
@@ -50,11 +58,6 @@
     (delete result list)
     result))
 
-(let* ((l '(0 1 2 3 4 5 6 7 8 9))
-       (i (delete-random-element l)))
-  (assert (= 9 (length l)))
-  (assert (null (find i l))))
-
 ;;; Cf. http://www.necessaryandsufficient.net/2010/12/
 ;;;     classical-test-functions-for-genetic-algorithms/
 ;;;
@@ -62,13 +65,12 @@
 (defvar *rastrigin-lower* -5.12)
 (defvar *rastrigin-upper* 5.12)
 (defun rastrigin (a x)
-  (when (vectorp x) ; We compute on a list here, not a vector.
-    (setf x (coerce x 'list)))
-  (assert (floatp a)) ; The coefficient A should be a float.
+  (assert (numberp a)) ; The coefficient A should be a number.
   (assert (listp x)) ; The argument x should be a list.
-  (mapcar (lambda (xi) ; Every x_i should be a float, correctly bounded.
-	    (assert (floatp xi))
-	    (assert (<= *rastrigin-lower* xi *rastrigin-upper*))))
+  (mapcar (lambda (xi) ; Every x_i should be a number, correctly bounded.
+	    (assert (numberp xi))
+	    (assert (<= *rastrigin-lower* xi *rastrigin-upper*)))
+          x)
   (let ((n (length x)))
     (+ (* a n)
        (reduce #'+ (mapcar (lambda (xi)
@@ -77,16 +79,10 @@
 			   x)))))
 
 ;; Some simple examples/unit tests of the Rastrigin function.
-(assert (= 0.0 (rastrigin 10 #(0 0)))) ; This is the global minimum.
-(assert (= 0.0 (rastrigin 10 #(0.0 0.0)))) ; This is the global minimum.
-(assert (= 0.0 (rastrigin 10.0 #(0.0 0.0)))) ; This is the global minimum.
-(assert (= 0.0 (rastrigin 10 #(0 0 0 0 0 0)))) ; This is the global minimum.
-(loop for i from 1 to 1000 do ; The Rastrigin function is always non-negative.
-      (assert (<= 0.0
-                  (rastrigin 10 #((random-in-range
-                                    *rastrigin-lower* *rastrigin-upper*)
-                                  (random-in-range
-                                    *rastrigin-lower* *rastrigin-upper*))))))
+(assert (= 0.0 (rastrigin 10 '(0 0)))) ; This is the global minimum.
+(assert (= 0.0 (rastrigin 10 '(0.0 0.0)))) ; This is the global minimum.
+(assert (= 0.0 (rastrigin 10.0 '(0.0 0.0)))) ; This is the global minimum.
+(assert (= 0.0 (rastrigin 10 '(0 0 0 0 0 0)))) ; This is the global minimum.
 
 (defun bounded (min value max)
   "(bounded min value max) --> result.
@@ -135,13 +131,13 @@
    (children :accessor children :initarg :children
              :type list :initform nil)
    (environ-lower :accessor environ-lower :initarg :environ-lower
-                  :type (vector float) :initform nil)
+                  :type list :initform nil)
    (environ-upper :accessor environ-upper :initarg :environ-upper
-		  :type (vector float) :initform nil)
+		  :type list :initform nil)
    (min-pop-size :accessor min-pop-size :initarg :min-pop-size
-		 :type (integer 1 *) :initform 1000)
+		 :type (integer 1 *) :initform 50)
    (max-pop-size :accessor max-pop-size :initarg :max-pop-size
-		 :type (integer 1 *) :initform 2000)
+		 :type (integer 1 *) :initform 100)
    (mutation-prob :accessor mutation-prob :initarg :mutation-prob
 		  :type (float 0.0 1.0) :initform 0.1)
    (mutation-factor :accessor mutation-factor :initarg :mutation-factor
@@ -150,8 +146,8 @@
 		   :type (float 0.0 1.0) :initform 0.1)))
 
 (defclass rastrigin2d-ea (ea) ; An EA for the 2D Rastrigin function.
-  ((environ-lower :initform #(*rastrigin-lower* *rastrigin-lower*))
-   (environ-upper :initform #(*rastrigin-upper* *rastrigin-upper*))
+  ((environ-lower :initform (list *rastrigin-lower* *rastrigin-lower*))
+   (environ-upper :initform (list *rastrigin-upper* *rastrigin-upper*))
    (coefficient-a :accessor coefficient-a :initarg :coefficient-a
                   :type float :initform 10.0)))
 
@@ -164,6 +160,7 @@
 (defgeneric make-random-individual (ea))
 (defgeneric add-random-individual (ea))
 (defgeneric fitness-function (individual ea))
+(defgeneric initialize-random-population (ea))
 (defgeneric evaluate-fitness (thing))
 (defgeneric terminate-evolution? (ea))
 (defgeneric select-parents (ea))
@@ -172,6 +169,15 @@
 (defgeneric integrate-children (ea))
 (defgeneric select-survivors (ea))
 (defgeneric evolve (ea))
+
+(defmethod print-object ((individual individual) stream)
+  (format stream "<Individual: Generation ~A // Fitness ~A // "
+          (generation individual) (fitness individual))
+  (if (genotype individual)
+    (loop for i from 0 to (1- (length (genotype individual))) do
+          (format stream "~A " (aref (genotype individual) i)))
+    "no genes")
+  (format stream ">"))
 
 (defmethod duplicate ((gene gene))
   (with-slots (value lower-bound upper-bound individual) gene
@@ -215,33 +221,35 @@
   (mutate! (duplicate individual)))
 
 (defmethod crossover ((father gene) (mother gene))
-  (let ((result (duplicate gene)))
+  (let ((result (duplicate father)))
     (when (= 0 (random 1))
-      (setf (value father) (value mother)))
+      (setf (value result) (value mother)))
     result))
 
 (defmethod crossover ((father individual) (mother individual))
-  (let ((result (duplicate individual)))
-    (setf (generation individual) (generation (ea individual)))
-    (loop for i from 0 to (length (genotype father)) do
+  (let ((result (duplicate father)))
+    (setf (generation result) (generation (ea result)))
+    (loop for i from 0 to (1- (length (genotype father))) do
 	 (setf (aref (genotype result) i)
-	       (mutate (genotype father) (genotype mother))))
+	       (crossover (aref (genotype father) i)
+                          (aref (genotype mother) i))))
     result))
 
 (defmethod make-random-individual ((ea ea))
   (make-instance 'individual
 		 :genotype
-		 (coerce (loop for i from 0 to (length (environ-lower ea))
+		 (coerce (loop for i from 0 to (1- (length (environ-lower ea)))
                                collect (random-in-range
-                                         (aref (environ-lower ea) i)
-                                         (aref (environ-upper ea) i)))
+                                         (nth i (environ-lower ea))
+                                         (nth i (environ-upper ea))))
 			 'vector)
 		 :ea ea
                  :generation (generation ea)))
 
 (defmethod add-random-individual ((ea ea))
   (setf (population ea)
-	(cons (make-random-individual ea) (population ea))))
+	(cons (make-random-individual ea) (population ea)))
+  (noisy "Adding a new random individual: ~A.~%" (first (population ea))))
 
 (defmethod initialize-random-population ((ea ea))
   (setf (population ea) nil)
@@ -280,27 +288,43 @@
 
 (defmethod select-survivors ((ea ea))
   (setf (population ea) (sort (population ea) #'< :key #'fitness))
-  (loop while (< (map-pop-size ea) (length (population ea))) do
+  (loop while (< (max-pop-size ea) (length (population ea))) do
         (pop (population ea))))
 
 (defmethod terminate-evolution? ((ea ea))
   (< 100 (generation ea)))
 
 (defmethod evolve ((ea ea))
+  (noisy "Starting evolution.~%")
+  (noisy "Initializing a random population.~%")
   (initialize-random-population ea)
+  (noisy "Evaluating the fitness.~%")
   (evaluate-fitness ea)
   (loop until (terminate-evolution? ea) do
+        (noisy "Generation ~A loop.~%" (generation ea))
+        (noisy "Selecting parents.~%")
         (select-parents ea)
+        (noisy "Recombining parents.~%")
         (recombine-parents ea)
+        (noisy "Mutating children.~%")
         (mutate-children ea)
+        (noisy "Integrating the children into the main population.~%")
         (integrate-children ea)
+        (noisy "Evaluating the fitness.~%")
         (evaluate-fitness ea)
+        (noisy "Selecting survivors.~%")
         (select-survivors ea)
+        (noisy "Most fit member: ~A.~%" (the-last (population ea)))
         (incf (generation ea))))
 
-(defmethod fitness-function (individual ((rastrigin2d-ea rastrigin2d-ea)))
+(defmethod fitness-function (individual (rastrigin2d-ea rastrigin2d-ea))
   ;; The Rastrigin function is optimal at 0, minimizing.  We code the rest of
   ;; the EA to assume that a larger fitness value implies a more fit individual,
   ;; so we just invert the sign of the final result of the Rastrigin function to
   ;; produce the fitness.
-  (- (rastrigin (genotype individual))))
+  (- (rastrigin (coefficient-a (ea individual)) (genotype individual))))
+
+(defvar *current-ea* nil)
+(defun run-the-ea ()
+  (setf *current-ea* (make-instance 'rastrigin2d-ea))
+  (evolve *current-ea*))
