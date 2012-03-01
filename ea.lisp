@@ -33,7 +33,9 @@
 
 (defvar *noisy* t)
 (defun noisy (&rest rest)
-  (if *noisy* (apply #'format t rest)))
+  (if *noisy*
+    (progn (apply #'format t rest)
+           (sleep 0.01))))
 
 (defun the-last (list)
   (assert (listp list))
@@ -50,13 +52,7 @@
 
 (defun random-element (list)
   (assert (listp list))
-  (nth (1- (length list)) list))
-
-(defun delete-random-element (list)
-  (assert (listp list))
-  (let ((result (random-element list)))
-    (delete result list)
-    result))
+  (nth (random (1- (length list))) list))
 
 ;;; Cf. http://www.necessaryandsufficient.net/2010/12/
 ;;;     classical-test-functions-for-genetic-algorithms/
@@ -137,13 +133,18 @@
    (min-pop-size :accessor min-pop-size :initarg :min-pop-size
 		 :type (integer 1 *) :initform 50)
    (max-pop-size :accessor max-pop-size :initarg :max-pop-size
-		 :type (integer 1 *) :initform 100)
+		 :type (integer 1 *) :initform 50)
    (mutation-prob :accessor mutation-prob :initarg :mutation-prob
 		  :type (float 0.0 1.0) :initform 0.1)
    (mutation-factor :accessor mutation-factor :initarg :mutation-factor
 		    :type (float 0.0 1.0) :initform 0.05)
    (crossover-prob :accessor crossover-prob :initarg :crossover-prob
-		   :type (float 0.0 1.0) :initform 0.1)))
+		   :type (float 0.0 1.0) :initform 0.2)))
+
+(defclass easy2d-ea (ea) ; An easy problem EA.
+  ((environ-lower :initform '(-10.0 -10.0))
+   (environ-upper :initform '(10.0 10.0))))
+
 
 (defclass rastrigin2d-ea (ea) ; An EA for the 2D Rastrigin function.
   ((environ-lower :initform (list *rastrigin-lower* *rastrigin-lower*))
@@ -170,6 +171,9 @@
 (defgeneric select-survivors (ea))
 (defgeneric evolve (ea))
 
+(defmethod print-object ((gene gene) stream)
+  (format stream "~A" (value gene)))
+
 (defmethod print-object ((individual individual) stream)
   (format stream "<Individual: Generation ~A // Fitness ~A // "
           (generation individual) (fitness individual))
@@ -178,6 +182,12 @@
           (format stream "~A " (aref (genotype individual) i)))
     "no genes")
   (format stream ">"))
+
+(defmethod duplicate ((list list))
+  (mapcar #'duplicate list))
+
+(defmethod duplicate ((vector vector))
+  (coerce (duplicate (coerce vector 'list)) 'vector))
 
 (defmethod duplicate ((gene gene))
   (with-slots (value lower-bound upper-bound individual) gene
@@ -188,7 +198,8 @@
 
 (defmethod duplicate ((individual individual))
   (with-slots (genotype fitness ea generation) individual
-    (make-instance 'individual :genotype genotype :fitness fitness :ea ea
+    (make-instance 'individual
+                   :genotype (duplicate genotype) :fitness fitness :ea ea
                    :generation generation)))
 
 (defmethod mutate? ((individual individual))
@@ -213,7 +224,7 @@
 (defmethod mutate! ((individual individual))
   (with-slots (genotype) individual
     (when (mutate? individual)
-      (loop for i from 0 to (length genotype) do
+      (loop for i from 0 to (1- (length genotype)) do
 	   (mutate! (aref genotype i)))))
   individual)
 
@@ -236,15 +247,18 @@
     result))
 
 (defmethod make-random-individual ((ea ea))
-  (make-instance 'individual
-		 :genotype
-		 (coerce (loop for i from 0 to (1- (length (environ-lower ea)))
-                               collect (random-in-range
-                                         (nth i (environ-lower ea))
-                                         (nth i (environ-upper ea))))
-			 'vector)
-		 :ea ea
-                 :generation (generation ea)))
+  (let ((result (make-instance 'individual :ea ea :generation (generation ea))))
+    (setf (genotype result)
+          (coerce (loop for i from 0 to (1- (length (environ-lower ea))) collect
+                        (make-instance 'gene 
+                                       :value (random-in-range
+                                                (nth i (environ-lower ea))
+                                                (nth i (environ-upper ea)))
+                                       :individual result
+                                       :lower-bound (nth i (environ-lower ea))
+                                       :upper-bound (nth i (environ-upper ea))))
+                  'vector))
+    result))
 
 (defmethod add-random-individual ((ea ea))
   (setf (population ea)
@@ -265,34 +279,46 @@
   (mapcar #'evaluate-fitness (population ea)))
 
 (defmethod select-parents ((ea ea))
-  (setf (parents ea) nil)
-  (mapcar (lambda (individual)
-            (if (crossover? individual)
-              (push individual (parents ea))))
-          (population ea)))
+  ;; Find the MOST useful.
+  (setf (population ea) (sort (population ea) #'> :key 'fitness))
+  (setf (parents ea)
+        (subseq (population ea)
+                0
+                (floor (* (length (population ea))
+                          (crossover-prob ea))))))
 
 (defmethod recombine-parents ((ea ea))
-  (setf (children ea) nil)
-  (loop while (<= 2 (length (parents ea))) do
-        (let* ((father (delete-random-element (parents ea)))
-               (mother (delete-random-element (parents ea)))
-               (child (crossover father mother)))
-          (push child (children ea)))))
+  (with-slots (children parents) ea
+    (setf children nil)
+    (loop while (< (length children) (length parents)) do
+          (let (father mother child)
+            (setf father (random-element parents))
+            (setf mother (random-element parents))
+            (setf child (crossover father mother))
+            (noisy "Father ~A.~%" father)
+            (noisy "Mother ~A.~%" mother)
+            (noisy "Child: ~A.~%" child)
+            (push child children)))))
 
 (defmethod mutate-children ((ea ea))
   (mapcar #'mutate! (children ea)))
 
 (defmethod integrate-children ((ea ea))
+  (mapcar (lambda (child)
+            (noisy "Child: ~A.~%" child))
+          (children ea))
   (setf (population ea) (concatenate 'list (population ea) (children ea))
         (children ea) nil))
 
 (defmethod select-survivors ((ea ea))
-  (setf (population ea) (sort (population ea) #'< :key #'fitness))
+  ;; Find the LEAST useful.
+  (setf (population ea) (sort (population ea) #'< :key 'fitness))
   (loop while (< (max-pop-size ea) (length (population ea))) do
+        (noisy "Eliminating ~A.~%" (first (population ea)))
         (pop (population ea))))
 
 (defmethod terminate-evolution? ((ea ea))
-  (< 100 (generation ea)))
+  (< 50 (generation ea)))
 
 (defmethod evolve ((ea ea))
   (noisy "Starting evolution.~%")
@@ -304,6 +330,9 @@
         (noisy "Generation ~A loop.~%" (generation ea))
         (noisy "Selecting parents.~%")
         (select-parents ea)
+        (mapcar (lambda (parent)
+                  (noisy "Parent ~A.~%" parent))
+                (parents ea))
         (noisy "Recombining parents.~%")
         (recombine-parents ea)
         (noisy "Mutating children.~%")
@@ -314,7 +343,8 @@
         (evaluate-fitness ea)
         (noisy "Selecting survivors.~%")
         (select-survivors ea)
-        (noisy "Most fit member: ~A.~%" (the-last (population ea)))
+        (setf (population ea) (sort (population ea) #'> :key #'fitness))
+        (noisy "Most fit member: ~A.~%" (first (population ea)))
         (incf (generation ea))))
 
 (defmethod fitness-function (individual (rastrigin2d-ea rastrigin2d-ea))
@@ -322,9 +352,17 @@
   ;; the EA to assume that a larger fitness value implies a more fit individual,
   ;; so we just invert the sign of the final result of the Rastrigin function to
   ;; produce the fitness.
-  (- (rastrigin (coefficient-a (ea individual)) (genotype individual))))
+  (- (rastrigin (coefficient-a (ea individual))
+                (mapcar #'value (coerce (genotype individual) 'list)))))
+
+(defmethod fitness-function (individual (easy2d-ea easy2d-ea))
+  (let ((v (mapcar #'value (coerce (genotype individual) 'list))))
+    (- (* (expt 2.7 (first v))
+          (expt 4.2 (second v))))))
 
 (defvar *current-ea* nil)
 (defun run-the-ea ()
+  (setf *random-state* (make-random-state t))
   (setf *current-ea* (make-instance 'rastrigin2d-ea))
+  ;(setf *current-ea* (make-instance 'easy2d-ea))
   (evolve *current-ea*))
