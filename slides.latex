@@ -41,12 +41,32 @@
 \end{slide}
 
 \begin{slide}
+  \h{Evolutionary Algorithms Are Cool!}
+  
+  \begin{center}
+    \includegraphics[height=2in]{dna.eps}
+  \end{center}
+\end{slide}
+
+\begin{slide}
   \h{Why Use and Evolutionary Algorithm?}
   \begin{itemize}
     \item The evaluation is very time-consuming.
-    \item The problem is computationally difficult, NP-Hard or similar.
-    \item You don't understand the problem, and it is a real-world system.
+    \item The problem is computationally difficult.
+    \item You don't understand the problem.
+    \item You are working with a real-world system.
     \item You just want to study evolutionary processes themselves.
+  \end{itemize}
+\end{slide}
+
+\begin{slide}
+  \h{Where Are Evolutionary Algorithms Used?}
+  \begin{itemize}
+    \item Artificial Intelligence.
+    \item Financial modeling.
+    \item Military applications.
+    \item Complex engineering systems.
+    \item Etc.
   \end{itemize}
 \end{slide}
 
@@ -68,11 +88,9 @@
 
 \begin{slide}
   \h{Population Initialization}
-
   \begin{itemize}
-    \item Intelligently seed the population: think Adam and Eve.
-      This is common if you are fine-tuning a solution you already have, either
-      generated from your EA in a previous run, or from some different system.\\
+    \item Intelligently seed the population.\\
+      Think Adam and Eve.\\
       \textbf{Pro:} you can start off the population somewhere useful.\\
       \textbf{Con:} you have to know where \textit{``somewhere useful''} is.
     \item Randomly generate the population.\\
@@ -83,9 +101,7 @@
 
 \begin{slide}
   \h{Fitness Evaluation}
-
   We need to determine the fitness of our solutions.
-
   \begin{itemize}
     \item Minimum or maximum direct value.
     \item Simulation of an environment.
@@ -96,21 +112,61 @@
 
 \begin{slide}
   \h{Parent Selection}
-
+  \begin{itemize}
+    \item Breed the most fit.
+    \item Don't be too selective: you'll get stuck on local optima.
+    \item Wide-population breeding encourages exploration.
+    \item Local breeding encourages optimization.
+  \end{itemize}
 \end{slide}
+
+\newcommand{\rca}[1]{\textcolor{BrickRed}{#1}}
+  \newcommand{\rcb}[1]{\textcolor{OliveGreen}{#1}}
 
 \begin{slide}
   \h{Recombination}
-  
+  \[
+    \left(\begin{array}{c}
+      \rca a \\ \rca b \\ \rca c \\ \rca d \\ \rca e
+    \end{array}\right)
+    \oplus
+    \left(\begin{array}{c}
+      \rcb \alpha \\ \rcb \beta \\ \rcb \gamma \\ \rcb \delta \\ \rcb \epsilon
+    \end{array}\right)
+    \rightarrow
+    \left(\begin{array}{c}
+       \rca a \\ \rca b \\ \rca c \\ \rcb \delta \\ \rcb \epsilon
+    \end{array}\right)
+  \]
+%
+%    \left(
+%      \begin{array}{c}
+%      \end{array}
+%    \right)
 \end{slide}
 
 \begin{slide}
   \h{Mutation}
+  \[
+    \left(\begin{array}{c}
+      a \\ b \\ c \\ d \\ e
+    \end{array}\right)
+    \rightarrow
+    \left(\begin{array}{c}
+      \rca{a\cdot1.02} \\ b \\ \rca{c\cdot0.975} \\ d \\ e
+    \end{array}\right)
+  \]
 \end{slide}
 
 \begin{slide}
   \h{Survivor Selection}
-
+  \begin{itemize}
+    \item Remove the least fit from the population:\\
+      \textit{``cull the herd.''}
+    \item Often just reduce the population to some maximum size.
+    \item Don't be too selective:\\
+      some population member may be useful for breeding later.
+  \end{itemize}
 \end{slide}
 
 \begin{slide}
