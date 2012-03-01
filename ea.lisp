@@ -40,6 +40,21 @@
         (z (max lower upper)))
     (+ a (random (- z a)))))
 
+(defun random-element (list)
+  (assert (listp list))
+  (nth (1- (length list)) list))
+
+(defun delete-random-element (list)
+  (assert (listp list))
+  (let ((result (random-element list)))
+    (delete result list)
+    result))
+
+(let* ((l '(0 1 2 3 4 5 6 7 8 9))
+       (i (delete-random-element l)))
+  (assert (= 9 (length l)))
+  (assert (null (find i l))))
+
 ;;; Cf. http://www.necessaryandsufficient.net/2010/12/
 ;;;     classical-test-functions-for-genetic-algorithms/
 ;;;
@@ -103,14 +118,22 @@
 (defclass individual () ; A simple evolvable individual.
   ((genotype :accessor genotype :initarg :genotype
 	     :type (vector gene) :initform nil)
+   (generation :accessor generation :initarg :generation
+               :type (integer 0 *) :initform nil)
    (fitness :accessor fitness :initarg :fitness
 	    :type float :initform nil)
    (ea :accessor ea :initarg :ea
        :type ea :initform nil)))
 
 (defclass ea () ; The base class for all of our EAs.
-  ((population :accessor population :initarg :population
+  ((generation :accessor generation :initarg :generation
+               :type (integer 0 *) :initform 0)
+   (population :accessor population :initarg :population
                :type list :initform nil)
+   (parents :accessor parents :initarg :parents
+            :type list :initform nil)
+   (children :accessor children :initarg :children
+             :type list :initform nil)
    (environ-lower :accessor environ-lower :initarg :environ-lower
                   :type (vector float) :initform nil)
    (environ-upper :accessor environ-upper :initarg :environ-upper
@@ -142,6 +165,12 @@
 (defgeneric add-random-individual (ea))
 (defgeneric fitness-function (individual ea))
 (defgeneric evaluate-fitness (thing))
+(defgeneric terminate-evolution? (ea))
+(defgeneric select-parents (ea))
+(defgeneric recombine-parents (ea))
+(defgeneric mutate-children (ea))
+(defgeneric integrate-children (ea))
+(defgeneric select-survivors (ea))
 (defgeneric evolve (ea))
 
 (defmethod duplicate ((gene gene))
@@ -152,8 +181,9 @@
 		   :individual individual)))
 
 (defmethod duplicate ((individual individual))
-  (with-slots (genotype fitness ea) individual
-    (make-instance 'individual :genotype genotype :fitness fitness :ea ea)))
+  (with-slots (genotype fitness ea generation) individual
+    (make-instance 'individual :genotype genotype :fitness fitness :ea ea
+                   :generation generation)))
 
 (defmethod mutate? ((individual individual))
   (< (random 1.0) (mutation-prob (ea individual))))
@@ -192,6 +222,7 @@
 
 (defmethod crossover ((father individual) (mother individual))
   (let ((result (duplicate individual)))
+    (setf (generation individual) (generation (ea individual)))
     (loop for i from 0 to (length (genotype father)) do
 	 (setf (aref (genotype result) i)
 	       (mutate (genotype father) (genotype mother))))
@@ -205,7 +236,8 @@
                                          (aref (environ-lower ea) i)
                                          (aref (environ-upper ea) i)))
 			 'vector)
-		 :ea ea))
+		 :ea ea
+                 :generation (generation ea)))
 
 (defmethod add-random-individual ((ea ea))
   (setf (population ea)
@@ -224,6 +256,36 @@
 (defmethod evaluate-fitness ((ea ea))
   (mapcar #'evaluate-fitness (population ea)))
 
+(defmethod select-parents ((ea ea))
+  (setf (parents ea) nil)
+  (mapcar (lambda (individual)
+            (if (crossover? individual)
+              (push individual (parents ea))))
+          (population ea)))
+
+(defmethod recombine-parents ((ea ea))
+  (setf (children ea) nil)
+  (loop while (<= 2 (length (parents ea))) do
+        (let* ((father (delete-random-element (parents ea)))
+               (mother (delete-random-element (parents ea)))
+               (child (crossover father mother)))
+          (push child (children ea)))))
+
+(defmethod mutate-children ((ea ea))
+  (mapcar #'mutate! (children ea)))
+
+(defmethod integrate-children ((ea ea))
+  (setf (population ea) (concatenate 'list (population ea) (children ea))
+        (children ea) nil))
+
+(defmethod select-survivors ((ea ea))
+  (setf (population ea) (sort (population ea) #'< :key #'fitness))
+  (loop while (< (map-pop-size ea) (length (population ea))) do
+        (pop (population ea))))
+
+(defmethod terminate-evolution? ((ea ea))
+  (< 100 (generation ea)))
+
 (defmethod evolve ((ea ea))
   (initialize-random-population ea)
   (evaluate-fitness ea)
@@ -231,8 +293,10 @@
         (select-parents ea)
         (recombine-parents ea)
         (mutate-children ea)
+        (integrate-children ea)
         (evaluate-fitness ea)
-        (select-survivors ea)))
+        (select-survivors ea)
+        (incf (generation ea))))
 
 (defmethod fitness-function (individual ((rastrigin2d-ea rastrigin2d-ea)))
   ;; The Rastrigin function is optimal at 0, minimizing.  We code the rest of
