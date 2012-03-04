@@ -35,7 +35,7 @@
 (defun noisy (&rest rest)
   (if *noisy*
     (progn (apply #'format t rest)
-           (sleep 0.01))))
+           (sleep 0.25))))
 
 (defun the-last (list)
   (assert (listp list))
